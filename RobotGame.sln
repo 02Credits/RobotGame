@@ -11,8 +11,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "Shared\Shared.shp
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Shared\RobotGameShared.projitems*{6065282c-20db-43aa-ba18-ad9c27a4a730}*SharedItemsImports = 4
-		Shared\RobotGameShared.projitems*{75065e31-8765-4b1a-a7fb-88a78e1f1568}*SharedItemsImports = 13
+		Shared\Shared.projitems*{6065282c-20db-43aa-ba18-ad9c27a4a730}*SharedItemsImports = 4
+		Shared\Shared.projitems*{75065e31-8765-4b1a-a7fb-88a78e1f1568}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU

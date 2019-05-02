@@ -1,17 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace RobotGameShared {
+
+    interface IContentLoadable {
+        void LoadContent(ContentManager content);
+    }
+
+    interface IUpdateable {
+        void Update(GameTime gameTime);
+    }
+
+    interface IDrawable {
+        void Draw(GameTime gameTime);
+    }
+
     public class Game : Microsoft.Xna.Framework.Game {
+        IList<IContentLoadable> contentLoadables;
+        IList<IUpdateable> updateables;
+        IList<IDrawable> drawables;
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        SpriteFont font;
-        Random random;
 
-        Color foreground = new Color(255, 176, 0);
-        Color background = new Color(40, 40, 40);
+        Colors colorManager;
 
         public Game() {
             graphics = new GraphicsDeviceManager(this);
@@ -24,24 +39,45 @@ namespace RobotGameShared {
         }
 
         protected override void Initialize() {
-            random = new Random();
+
             base.Initialize();
         }
 
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            font = Content.Load<SpriteFont>("Gugi");
+
+            Factory.BeginRegistration();
+            Factory.RegisterSingleton(GraphicsDevice);
+            Factory.RegisterSingleton(spriteBatch);
+            Factory.EndRegistration();
+
+            contentLoadables = Factory.Resolve<IList<IContentLoadable>>();
+            updateables = Factory.Resolve<IList<IUpdateable>>();
+            drawables = Factory.Resolve<IList<IDrawable>>();
+            colorManager = Factory.Resolve<Colors>();
+
+            foreach (IContentLoadable contentLoadable in contentLoadables) {
+                contentLoadable.LoadContent(Content);
+            }
         }
 
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
+
+            foreach (IUpdateable updateable in updateables) {
+                updateable.Update(gameTime);
+            }
         }
 
         protected override void Draw(GameTime gameTime) {
-            graphics.GraphicsDevice.Clear(background);
-            spriteBatch.Begin();
-            spriteBatch.DrawString(font, $"This is a random number: {random.Next() * 100000}", new Vector2(100, 100), foreground);
+            graphics.GraphicsDevice.Clear(colorManager.Background);
+
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            foreach (IDrawable drawable in drawables) {
+                drawable.Draw(gameTime);
+            }
             spriteBatch.End();
+
             base.Draw(gameTime);
         }
     }
