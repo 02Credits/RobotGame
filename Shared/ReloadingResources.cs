@@ -12,6 +12,8 @@ namespace RobotGameShared {
         Dictionary<string, ReloadingResource> reloadingResources = new Dictionary<string, ReloadingResource>();
         ConcurrentQueue<string> resourcesToReload = new ConcurrentQueue<string>();
 
+        public int UpdateOrder => 1;
+
         public void LoadContent(ContentManager content) {
             foreach (ReloadingResource resource in reloadingResources.Values) {
 #if DEBUG && !IOS
@@ -24,9 +26,7 @@ namespace RobotGameShared {
 
         public void Update(GameTime gameTime) {
             while (resourcesToReload.TryDequeue(out var resourcePath)) {
-#if DEBUG && !IOS
                 reloadingResources[resourcePath].DebugReload();
-#endif
             }
         }
 
@@ -47,6 +47,7 @@ namespace RobotGameShared {
         FileSystemWatcher watcher;
 
         public ReloadingResource(ResourceReloader resourceReloader, string resourceName) {
+#if DEBUG && !IOS
             this.resourceReloader = resourceReloader;
             this.resourceName = resourceName;
 
@@ -61,14 +62,17 @@ namespace RobotGameShared {
             watcher.EnableRaisingEvents = true;
 
             resourceReloader.Register(resourceName, this);
+#endif
         }
 
         public abstract void DebugReload();
         public abstract void ProductionLoad(ContentManager content);
 
         public void Dispose() {
+#if DEBUG && !IOS
             resourceReloader.Unregister(resourceName);
             watcher.Dispose();
+#endif
         }
     }
 

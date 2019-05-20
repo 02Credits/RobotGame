@@ -20,7 +20,13 @@ namespace RobotGameShared {
 
         public double Sample(string curveName, double progress) {
             double[] curve = animationCurves[curveName];
-            return curve[(int)(progress * curve.Length) % curve.Length];
+            double index = progress * curve.Length;
+            double remainder = index - (int)index;
+
+            double floorValue = curve[(int)Math.Floor(Math.Max(index, 0)) % curve.Length];
+            double ceilValue = curve[(int)Math.Ceiling(Math.Max(index, 0)) % curve.Length];
+
+            return (1.0 - remainder) * floorValue + remainder * ceilValue;
         }
 
         public int Interpolate(string curveName, double progress, int from, int to) {
@@ -67,7 +73,7 @@ namespace RobotGameShared {
                         yCount++;
                     }
                 }
-                curve[x] = totalY / yCount / texture.Height;
+                curve[x] = 1.0 - totalY / yCount / texture.Height;
             }
 
             return curve;

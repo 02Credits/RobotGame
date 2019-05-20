@@ -10,23 +10,38 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AnimationManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Renderer\CameraManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Colors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InputManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Map\Geometry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Factory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Game.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Map\MapManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pathing\PathFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pathing\PathRenderer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReloadingResources.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RoutineTicker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ScreenSizeManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpriteSheet\PackerFormat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpriteSheet\SheetManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Map\Tiles.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Renderer\VertexManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Renderer\VertexRenderer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Map\WorldRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Cloud.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Leaf.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Moon.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Rain.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Stick.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\Actions\Sun.png" />
-    <Content Include="$(MSBuildThisFileDirectory)Content\AnimationCurves\Test.png" />
     <Content Include="$(MSBuildThisFileDirectory)Content\Gugi-Regular.ttf" />
+    <Content Include="$(MSBuildThisFileDirectory)Content\TileSheet.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Content\Gugi.spritefont" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Map\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Renderer\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Pathing\" />
   </ItemGroup>
 </Project>
