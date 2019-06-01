@@ -1,24 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using RobotGameShared.Map;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RobotGameShared.Pathing {
-
-    public class PathFindingManager : IDrawable {
-        private readonly InputManager inputManager;
+namespace RobotGameShared {
+    public class PathFinder {
         private readonly MapManager mapManager;
         private readonly WorldRenderer worldRenderer;
-        private readonly PathRenderer pathRenderer;
 
-        public int DrawOrder => 1;
+        public Vector2 Target { get; set; } = Vector2.Zero;
 
-        public PathFindingManager(InputManager inputManager, MapManager mapManager, WorldRenderer worldRenderer, PathRenderer pathRenderer) {
-            this.inputManager = inputManager;
+        public PathFinder(MapManager mapManager, WorldRenderer worldRenderer) {
             this.mapManager = mapManager;
             this.worldRenderer = worldRenderer;
-            this.pathRenderer = pathRenderer;
         }
 
         public IEnumerable<Vector2> ReachableAdjacentLocations(Vector2 position) {
@@ -92,15 +88,18 @@ namespace RobotGameShared.Pathing {
             return distanceLookup;
         }
 
-        public void Draw(GameTime gameTime) {
-            var worldPosition = worldRenderer.ScreenToWorld(inputManager.GetInputPosition());
-
-            if (worldPosition.X >= 0 && worldPosition.X < mapManager.Radius &&
-                worldPosition.Y >= 0 && worldPosition.Y < mapManager.Radius) {
-                var shortestPath = FindShortestPath(mapManager.BallPosition, new Vector2((int)worldPosition.X, (int)worldPosition.Y));
-                if (shortestPath != null) {
-                    pathRenderer.DrawPath(shortestPath);
+        public void DrawPath(IReadOnlyList<Vector2> path) {
+            foreach ((Vector2 previous, Vector2 current) in path.Skip(1).Zip(path.Skip(2), (a, b) => (a, b))) {
+                Directions direction = (current - previous).Direction();
+                Tiles previousTile = mapManager.TileAt(previous).Value;
+                Tiles arrow;
+                if (previousTile == Tiles.SlopeLeft || previousTile == Tiles.SlopeRight) {
+                    arrow = direction.SlopeArrow();
+                } else {
+                    arrow = direction.FlatArrow();
                 }
+
+                worldRenderer.DrawEntity(arrow, previous);
             }
         }
     }

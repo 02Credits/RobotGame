@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace RobotGameShared {
-    public class Colors {
+    public class ColorManager {
         public readonly IReadOnlyList<Color> Lookup = new[] {
             new Color(8, 20, 30),
             new Color(15, 42, 63),

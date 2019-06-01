@@ -16,6 +16,7 @@ namespace RobotGameShared.Map {
         Wall,
         Tree,
         Ball,
+        BallShadow,
 
         ArrowNegativeX,
         ArrowNegativeY,
@@ -29,6 +30,33 @@ namespace RobotGameShared.Map {
     }
 
     public static class TilesExtensions {
+        public static readonly IReadOnlyDictionary<Tiles, string> TileAssets = new Dictionary<Tiles, string> {
+            [Tiles.Flat] = "U0R0D0L0",
+            [Tiles.Raised] = "U1R1D1L1",
+
+            [Tiles.SlopeRight] = "U1R1D0L0",
+            [Tiles.SlopeLeft] = "U1R0D0L1",
+            [Tiles.SlopeUp] = "U1R0D0L0",
+            [Tiles.SlopeDown] = "U1R1D0L1",
+
+            [Tiles.Wall] = "Wall",
+            [Tiles.Tree] = "Tree",
+            [Tiles.Ball] = "Ball",
+            [Tiles.BallShadow] = "BallShadow",
+
+            [Tiles.ArrowNegativeX] = "FlatNegativeX",
+            [Tiles.ArrowNegativeY] = "FlatNegativeY",
+            [Tiles.ArrowPositiveX] = "FlatPositiveX",
+            [Tiles.ArrowPositiveY] = "FlatPositiveY",
+
+            [Tiles.ArrowSlopeNegativeX] = "SlopeNegativeX",
+            [Tiles.ArrowSlopeNegativeY] = "SlopeNegativeY",
+            [Tiles.ArrowSlopePositiveX] = "SlopePositiveX",
+            [Tiles.ArrowSlopePositiveY] = "SlopePositiveY",
+        };
+
+        public static string TileAsset(this Tiles tile) => TileAssets[tile];
+
         private static readonly IReadOnlyCollection<Tiles> walkableTerrain = new HashSet<Tiles> {
             Tiles.Flat, Tiles.SlopeRight, Tiles.SlopeLeft
         };

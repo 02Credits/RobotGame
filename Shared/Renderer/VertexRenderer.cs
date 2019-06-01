@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using RobotGameShared.SpriteSheet;
 using System;
@@ -6,54 +7,74 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace RobotGameShared.Renderer {
-    public class VertexRenderer : IDrawable {
-        GraphicsDevice graphics;
-        BasicEffect basicEffect;
-
-        VertexManager vertexManager;
+    public class VertexRenderer : IContentLoadable, IDrawable {
+        private readonly Game game;
+        private readonly GraphicsDevice graphics;
+        private readonly SpriteBatch spriteBatch;
+        private readonly SpriteRenderer spriteRenderer;
+        private readonly VertexManager vertexManager;
         private readonly CameraManager cameraManager;
         private readonly SheetManager sheetManager;
+        private readonly ColorManager colorManager;
+        Effect effect;
 
-        public VertexRenderer(GraphicsDevice graphics, VertexManager vertexManager, CameraManager cameraManager, SheetManager sheetManager) {
+        public float DrawOrder => (float)DrawStages.UI - 0.1f;
+
+        public VertexRenderer(Game game, GraphicsDevice graphics, SpriteBatch spriteBatch, ColorManager colorManager, SpriteRenderer spriteRenderer, VertexManager vertexManager, CameraManager cameraManager, SheetManager sheetManager) {
+            this.game = game;
             this.graphics = graphics;
+            this.spriteBatch = spriteBatch;
+            this.spriteRenderer = spriteRenderer;
             this.vertexManager = vertexManager;
             this.cameraManager = cameraManager;
             this.sheetManager = sheetManager;
-            basicEffect = new BasicEffect(graphics);
+            this.colorManager = colorManager;
         }
 
-        public int DrawOrder => 2;
+        public void LoadContent(ContentManager content) {
+            effect = content.Load<Effect>("Shaders/Sprite");
+        }
 
         public void Draw(GameTime gameTime) {
-            graphics.BlendState = new BlendState {
-                AlphaSourceBlend = Blend.SourceAlpha
-            };
+            graphics.BlendState = BlendState.AlphaBlend;
             graphics.RasterizerState = RasterizerState.CullNone;
             graphics.SamplerStates[0] = SamplerState.PointWrap;
             graphics.DepthStencilState = DepthStencilState.Default;
 
-            basicEffect.VertexColorEnabled = true;
-            basicEffect.TextureEnabled = true;
 
-            basicEffect.World = Matrix.Identity;
+            effect.Parameters["View"].SetValue(cameraManager.View);
+            effect.Parameters["Projection"].SetValue(cameraManager.Projection);
+            effect.Parameters["SpriteSheet"].SetValue(sheetManager.Sheet);
 
-            basicEffect.View = cameraManager.View;
-            basicEffect.Projection = cameraManager.Projection;
+            spriteRenderer.SetVertices();
 
-            basicEffect.Texture = sheetManager.Sheet;
+            graphics.SetRenderTarget(game.WorldTarget);
+            graphics.Clear(colorManager.Lookup[0]);
+            effect.CurrentTechnique = effect.Techniques["Textured"];
+            DrawVertices();
+            graphics.SetRenderTarget(game.InputTarget);
+            graphics.Clear(Color.Black);
+            effect.CurrentTechnique = effect.Techniques["Solid"];
+            DrawVertices();
 
-            var manager = vertexManager.Manager;
-            if (manager.VertexCount > 0) {
-                foreach (var pass in basicEffect.CurrentTechnique.Passes) {
+            graphics.SetRenderTarget(null);
+            spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+            spriteBatch.Draw(game.WorldTarget, Vector2.Zero , Color.White);
+            spriteBatch.End();
+        }
+
+        private void DrawVertices() {
+            if (vertexManager.VertexCount > 0) {
+                foreach (var pass in effect.CurrentTechnique.Passes) {
                     pass.Apply();
                     graphics.DrawUserIndexedPrimitives(
                         PrimitiveType.TriangleList,
-                        manager.Vertices,
+                        vertexManager.Vertices,
                         0,
-                        manager.VertexCount,
-                        manager.Indices,
+                        vertexManager.VertexCount,
+                        vertexManager.Indices,
                         0,
-                        manager.IndexCount / 3);
+                        vertexManager.IndexCount / 3);
                 }
             }
         }

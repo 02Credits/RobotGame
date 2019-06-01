@@ -45,7 +45,6 @@ namespace RobotGameShared {
         }
 
         public void LoadContent(ContentManager content) {
-            LoadCurve("Test", content);
         }
 
         private void LoadCurve(string textureName, ContentManager content) {

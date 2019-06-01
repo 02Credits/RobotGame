@@ -5,34 +5,46 @@ using Microsoft.Xna.Framework;
 
 namespace RobotGameShared.Renderer {
     public class CameraManager : IUpdateable {
-        private readonly ScreenSizeManager screenSizeManager;
+        private readonly Game game;
 
-        public int UpdateOrder => 0;
+        public float UpdateOrder => (float)UpdateStages.Setup;
 
         public Matrix View { get; private set; }
         public Matrix Projection { get; private set; }
 
-        public float CameraWidth { get; set; } = 10;
+        public float MinTileSize { get; set; } = 6;
 
         public Vector3 WorldPosition { get; set; }
 
-        public CameraManager(ScreenSizeManager screenSizeManager) {
-            this.screenSizeManager = screenSizeManager;
+        public CameraManager(Game game) {
+            this.game = game;
         }
 
         public void Update(GameTime gameTime) {
-            float heightOverWidth = (float)screenSizeManager.PixelHeight / screenSizeManager.PixelWidth;
-            float cameraHeight = CameraWidth * heightOverWidth;
+            float cameraWidth;
+            float cameraHeight;
+
+            if (game.PixelWidth < game.PixelHeight * 2) {
+                float heightOverWidth = (float)game.PixelHeight / game.PixelWidth;
+                cameraWidth = MinTileSize;
+                cameraHeight = cameraWidth * heightOverWidth;
+            } else {
+                float widthOverHeight = (float)game.PixelWidth / game.PixelHeight;
+                cameraHeight = MinTileSize / 2;
+                cameraWidth = cameraHeight * widthOverHeight;
+            }
+
+
             Projection = Matrix.CreateOrthographicOffCenter(
-                -CameraWidth / 2, CameraWidth / 2,
-                -cameraHeight / 2, cameraHeight / 2,
+                -cameraWidth / 2, cameraWidth / 2,
+                cameraHeight / 2, -cameraHeight / 2,
                 float.MinValue, float.MaxValue);
 
             View = Matrix.CreateTranslation(
                 new Vector3(
-                    0.5f * WorldPosition.X + 0.5f * WorldPosition.Y,
-                    0.5f * WorldPosition.X - 0.5f * WorldPosition.Y + 0.25f * WorldPosition.Z,
-                    0));
+                    -WorldPosition.X - WorldPosition.Y,
+                    WorldPosition.X / 2.0f - WorldPosition.Y / 2.0f + WorldPosition.Z / 2.0f,
+                    0) / 2.0f);
         }
     }
 }

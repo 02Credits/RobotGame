@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace RobotGameShared {
     interface IContentLoadable {
@@ -11,12 +12,12 @@ namespace RobotGameShared {
     }
 
     interface IUpdateable {
-        int UpdateOrder { get; }
+        float UpdateOrder { get; }
         void Update(GameTime gameTime);
     }
 
     interface IDrawable {
-        int DrawOrder { get; }
+        float DrawOrder { get; }
         void Draw(GameTime gameTime);
     }
 
@@ -28,9 +29,19 @@ namespace RobotGameShared {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        Colors colorManager;
+        public RenderTarget2D WorldTarget { get; private set; }
+        public RenderTarget2D InputTarget { get; private set; }
 
-        public RenderTarget2D RenderTarget { get; private set; }
+        public int PixelWidth => WorldTarget.Width;
+        public int PixelHeight => WorldTarget.Height;
+
+#if IOS
+        public int DeviceWidth => Window.ClientBounds.Width;
+        public int DeviceHeight => Window.ClientBounds.Height;
+#else
+        public int DeviceWidth => GraphicsDevice.Viewport.Width;
+        public int DeviceHeight => GraphicsDevice.Viewport.Height;
+#endif
 
         public Game() {
             graphics = new GraphicsDeviceManager(this);
@@ -46,11 +57,16 @@ namespace RobotGameShared {
 
         protected override void Initialize() {
             base.Initialize();
+
+            DepthStencilState depthBufferState = new DepthStencilState(); 
+            depthBufferState.DepthBufferEnable = true;
+            GraphicsDevice.DepthStencilState = depthBufferState;
         }
 
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            ResizeRenderTarget();
+            WorldTarget = ResizeRenderTarget();
+            InputTarget = ResizeRenderTarget();
 
             Factory.BeginRegistration();
             Factory.RegisterSingleton(new Random());
@@ -64,8 +80,6 @@ namespace RobotGameShared {
             updateables = Factory.Resolve<IEnumerable<IUpdateable>>().OrderBy(updateable => updateable.UpdateOrder).ToList();
             drawables = Factory.Resolve<IEnumerable<IDrawable>>().OrderBy(drawable => drawable.DrawOrder).ToList();
 
-            colorManager = Factory.Resolve<Colors>();
-
             foreach (IContentLoadable contentLoadable in contentLoadables) {
                 contentLoadable.LoadContent(Content);
             }
@@ -74,15 +88,14 @@ namespace RobotGameShared {
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
 
-#if !IOS
-            if (graphics.PreferredBackBufferWidth != Window.ClientBounds.Width ||
-                graphics.PreferredBackBufferHeight != Window.ClientBounds.Height) {
-                graphics.PreferredBackBufferWidth = Window.ClientBounds.Width;
-                graphics.PreferredBackBufferHeight = Window.ClientBounds.Height;
+            if (graphics.PreferredBackBufferWidth != DeviceWidth ||
+                graphics.PreferredBackBufferHeight != DeviceHeight) {
+                graphics.PreferredBackBufferWidth = DeviceWidth;
+                graphics.PreferredBackBufferHeight = DeviceHeight;
                 graphics.ApplyChanges();
-                ResizeRenderTarget();
+                WorldTarget = ResizeRenderTarget();
+                InputTarget = ResizeRenderTarget();
             }
-#endif
 
             foreach (IUpdateable updateable in updateables) {
                 updateable.Update(gameTime);
@@ -90,29 +103,17 @@ namespace RobotGameShared {
         }
 
         protected override void Draw(GameTime gameTime) {
-            GraphicsDevice.SetRenderTarget(RenderTarget);
-            graphics.GraphicsDevice.Clear(colorManager.Lookup[0]);
-
-            foreach (IGrouping<int, IDrawable> drawablesLayer in drawables.GroupBy(drawable => drawable.DrawOrder)) {
-                spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.FrontToBack);
-                foreach (IDrawable drawable in drawablesLayer) {
-                    drawable.Draw(gameTime);
-                }
-                spriteBatch.End();
+            foreach (IDrawable drawable in drawables) {
+                drawable.Draw(gameTime);
             }
-
-            GraphicsDevice.SetRenderTarget(null);
-            spriteBatch.Begin(samplerState: SamplerState.PointClamp, sortMode: SpriteSortMode.FrontToBack);
-            spriteBatch.Draw(RenderTarget, new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
-            spriteBatch.End();
 
             base.Draw(gameTime);
         }
 
-        private void ResizeRenderTarget() {
-            RenderTarget = new RenderTarget2D(
+        private RenderTarget2D ResizeRenderTarget() {
+            return new RenderTarget2D(
                 GraphicsDevice,
-                352, 352 * GraphicsDevice.PresentationParameters.BackBufferHeight / GraphicsDevice.PresentationParameters.BackBufferWidth,
+                DeviceWidth, DeviceHeight,
                 false, GraphicsDevice.PresentationParameters.BackBufferFormat,
                 DepthFormat.Depth24);
         }

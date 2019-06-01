@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using RobotGameShared.SpriteSheet;
 
 namespace RobotGameShared.Map {
-    public class MapManager : IUpdateable {
+    public class MapManager {
         private Dictionary<(int left, int up, int right, int down), Tiles> SlopeLookup = new Dictionary<(int, int, int, int), Tiles> {
             [(0, 0, 0, 0)] = Tiles.Flat,
             [(1, 1, 0, 0)] = Tiles.SlopeLeft,
@@ -19,34 +19,17 @@ namespace RobotGameShared.Map {
         public (Tiles tile, int height)[][] TileMap;
         public Tiles?[][] EntityMap;
 
-        public int Radius = 10;
+        public int Radius = 50;
+        public float EntityProportion = 0.1f;
 
         public int Width => Radius;
         public int Height => Radius;
-
-        public int UpdateOrder => 0;
-
-        public Vector2 BallPosition { get; private set; }
 
         private Random random;
 
         public MapManager(Random random) {
             this.random = random;
             RandomizeMap();
-        }
-
-        public void Update(GameTime gameTime) {
-#if IOS
-            TouchCollection tc = TouchPanel.GetState();
-            if (tc.Any()) {
-                RandomizeMap();
-            }
-#else
-            var mouseState = Mouse.GetState();
-            if (mouseState.LeftButton == ButtonState.Pressed) {
-                RandomizeMap();
-            }
-#endif
         }
 
         public void RandomizeMap() {
@@ -86,23 +69,13 @@ namespace RobotGameShared.Map {
                 }
             }
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < (Radius * Radius) * EntityProportion; i++) {
                 int x = random.Next(Width - 1);
                 int y = random.Next(Height - 1);
 
                 if (TileMap[x][y].tile == Tiles.Flat && EntityMap[x][y] == null) {
                     Tiles tile = random.Next(2) == 1 ? Tiles.Tree : Tiles.Wall;
                     EntityMap[x][y] = tile;
-                }
-            }
-
-            while (true) {
-                int x = random.Next(Width - 1);
-                int y = random.Next(Height - 1);
-                if (TileMap[x][y].tile == Tiles.Flat && EntityMap[x][y] == null) {
-                    EntityMap[x][y] = Tiles.Ball;
-                    BallPosition = new Vector2(x, y);
-                    break;
                 }
             }
         }
@@ -127,6 +100,17 @@ namespace RobotGameShared.Map {
             }
 
             return null;
+        }
+
+        public Vector3 GroundLevel(Vector2 position) {
+            int xIndex = (int)position.X;
+            int yIndex = (int)position.Y;
+            if (xIndex >= 0 && xIndex < Radius &&
+                yIndex >= 0 && yIndex < Radius) {
+                var height = TileMap[xIndex][yIndex].height;
+                return new Vector3(position, height);
+            }
+            return new Vector3(position, 0);
         }
     }
 }

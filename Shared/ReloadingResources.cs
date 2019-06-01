@@ -12,7 +12,7 @@ namespace RobotGameShared {
         Dictionary<string, ReloadingResource> reloadingResources = new Dictionary<string, ReloadingResource>();
         ConcurrentQueue<string> resourcesToReload = new ConcurrentQueue<string>();
 
-        public int UpdateOrder => 1;
+        public float UpdateOrder => (float)UpdateStages.Setup;
 
         public void LoadContent(ContentManager content) {
             foreach (ReloadingResource resource in reloadingResources.Values) {

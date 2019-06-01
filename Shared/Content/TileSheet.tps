@@ -182,6 +182,7 @@
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
             <key type="filename">Tiles/Ball.png</key>
+            <key type="filename">Tiles/BallShadow.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
                 <point_f>0.5,0.583333</point_f>
